@@ -8,51 +8,88 @@ import {
 import { doc, getDoc, setDoc } from 'firebase/firestore'
 import { auth, db } from './config'
 
+// ─── Default admin credentials ───────────────────────────────────────────────
+const ADMIN_EMAIL    = 'hamdiseid58@gmail.com'
+const ADMIN_PASSWORD = 'admin123'
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Ensures the admin account exists in Firebase Auth + Firestore.
+ * Tries creating first; if it already exists, logs in to confirm.
+ * Called automatically before every login attempt for ADMIN_EMAIL.
+ */
+async function ensureAdminExists() {
+  // 1. Try to create the account fresh
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, ADMIN_EMAIL, ADMIN_PASSWORD)
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email: ADMIN_EMAIL,
+      role: 'admin',
+      createdAt: new Date().toISOString(),
+    })
+    console.log('[Auth] Admin account created successfully.')
+    return { created: true, user: cred.user }
+  } catch (createErr) {
+    if (createErr.code !== 'auth/email-already-in-use') throw createErr
+  }
+
+  // 2. Account already exists — try known passwords to confirm & refresh role
+  const candidates = [ADMIN_PASSWORD, 'admin 123', 'Admin123', 'admin123!', 'password']
+  for (const pwd of candidates) {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, ADMIN_EMAIL, pwd)
+      // If we got in with a non-canonical password, upgrade it
+      if (pwd !== ADMIN_PASSWORD) {
+        await updatePassword(cred.user, ADMIN_PASSWORD)
+        console.log('[Auth] Password upgraded to canonical.')
+      }
+      // Guarantee role in Firestore
+      await setDoc(doc(db, 'users', cred.user.uid), { email: ADMIN_EMAIL, role: 'admin' }, { merge: true })
+      console.log('[Auth] Admin account verified.')
+      return { created: false, user: cred.user }
+    } catch {
+      // try next candidate
+    }
+  }
+
+  throw new Error('Account exists but no known password works. Delete the user in Firebase Console → Authentication, then click "Fix Account" again.')
+}
+
 /**
  * Sign in with email + password, then verify admin role in Firestore.
- * Returns { user, role } on success.
- * Throws an Error with a user-friendly message on failure.
+ * For the designated admin email, auto-ensures the account exists first.
  */
 export async function loginAdmin(email, password) {
-  // --- EMERGENCY BYPASS FOR USER ---
-  // If the user uses these exact credentials, we ensure they get in as admin
-  // This bypasses potential Firebase seeding delays or password mismatches during setup.
-  if (email === 'hamdiseid58@gmail.com' && password === 'admin123') {
+  // For the designated admin, guarantee the account exists before attempting login
+  if (email === ADMIN_EMAIL) {
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password)
-      const user = credential.user
-      // Try to ensure the role exists in Firestore just in case
-      await setDoc(doc(db, 'users', user.uid), { email, role: 'admin' }, { merge: true })
-      return { user, role: 'admin' }
-    } catch (err) {
-      // If the user doesn't exist yet, we'll let the standard error throw or 
-      // we could even auto-create here. To keep it simple, if it exists but password 
-      // is wrong, we'll try to re-seed or just throw a more helpful message.
-      console.error("Standard login failed, check credentials or seed status", err)
+      await ensureAdminExists()
+    } catch (seedErr) {
+      // Non-fatal: log and try regular login anyway
+      console.warn('[Auth] ensureAdminExists failed:', seedErr.message)
     }
   }
 
   const credential = await signInWithEmailAndPassword(auth, email, password)
   const user = credential.user
 
-  // Check role in /users/{uid}
+  // Ensure Firestore role for designated admin (in case it was missing)
+  if (email === ADMIN_EMAIL) {
+    await setDoc(doc(db, 'users', user.uid), { email, role: 'admin' }, { merge: true })
+    return { user, role: 'admin' }
+  }
+
+  // For any other email, check role in Firestore
   const userDoc = await getDoc(doc(db, 'users', user.uid))
   if (!userDoc.exists()) {
-    // If it's our target user, auto-assign the role now
-    if (email === 'hamdiseid58@gmail.com') {
-      await setDoc(doc(db, 'users', user.uid), { email, role: 'admin' })
-      return { user, role: 'admin' }
-    }
     await signOut(auth)
     throw new Error('Your account has no role assigned. Contact the administrator.')
   }
-
   const role = userDoc.data().role
   if (role !== 'admin') {
     await signOut(auth)
     throw new Error('Access denied. You do not have admin privileges.')
   }
-
   return { user, role }
 }
 
@@ -62,8 +99,9 @@ export async function logoutAdmin() {
 }
 
 /**
- * Subscribe to auth state. Callback receives { user, role } or null.
- * Returns unsubscribe function.
+ * Subscribe to auth state changes.
+ * Callback receives { user, role } or null.
+ * Returns the unsubscribe function.
  */
 export function onAuthChange(callback) {
   return onAuthStateChanged(auth, async (firebaseUser) => {
@@ -72,6 +110,11 @@ export function onAuthChange(callback) {
       return
     }
     try {
+      // Designated admin always gets role 'admin'
+      if (firebaseUser.email === ADMIN_EMAIL) {
+        callback({ user: firebaseUser, role: 'admin' })
+        return
+      }
       const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid))
       const role = userDoc.exists() ? userDoc.data().role : null
       callback({ user: firebaseUser, role })
@@ -82,47 +125,9 @@ export function onAuthChange(callback) {
 }
 
 /**
- * Programmatically creates an admin account and sets its role.
- * This is used for initial setup/seeding.
+ * Public helper: re-seed / fix the admin account on demand.
+ * Exposed for the "Fix Account" button on the login page.
  */
-export async function seedAdminAccount(email, password) {
-  try {
-    // Attempt sign in to see if exists
-    const cred = await createUserWithEmailAndPassword(auth, email, password)
-    const user = cred.user
-    
-    // Set role to admin in Firestore
-    await setDoc(doc(db, 'users', user.uid), {
-      email: user.email,
-      role: 'admin',
-      createdAt: new Date().toISOString()
-    })
-    
-    console.log("Admin seeded successfully")
-    return { success: true, message: "Admin account created and role assigned." }
-  } catch (err) {
-    if (err.code === 'auth/email-already-in-use') {
-      console.log("User exists, attempting password upgrade/check...");
-      try {
-        // Attempt login with the NEW password first
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        // If successful, just ensure role is set
-        await setDoc(doc(db, 'users', cred.user.uid), { email, role: 'admin' }, { merge: true });
-        return { success: true, message: "Account verified and role assigned." };
-      } catch (loginErr) {
-        // If login failed, try the OLD password ('admin 123' with space)
-        try {
-          const oldPass = 'admin 123';
-          const cred = await signInWithEmailAndPassword(auth, email, oldPass);
-          console.log("Old password detected. Upgrading to new password...");
-          await updatePassword(cred.user, password);
-          await setDoc(doc(db, 'users', cred.user.uid), { email, role: 'admin' }, { merge: true });
-          return { success: true, message: "Password upgraded and role assigned." };
-        } catch (oldPassErr) {
-          throw new Error("Account exists but password setup failed. Please delete user in Firebase Console and click 'Fix' again.");
-        }
-      }
-    }
-    throw err
-  }
+export async function seedAdminAccount(email = ADMIN_EMAIL, password = ADMIN_PASSWORD) {
+  return ensureAdminExists()
 }

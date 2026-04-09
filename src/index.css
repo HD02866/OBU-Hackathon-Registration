@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 @custom-variant dark (&:where(.dark, .dark *));
 
@@ -21,4 +22,33 @@ body {
 #root {
   width: 100%;
   min-height: 100vh;
+}
+
+/* Floating glow keyframes */
+@keyframes float-slow {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(28px, 18px) scale(1.06); }
+  66%       { transform: translate(-14px, 26px) scale(0.97); }
+}
+
+@keyframes float-slow-reverse {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33%       { transform: translate(-22px, -18px) scale(1.04); }
+  66%       { transform: translate(16px, -28px) scale(0.98); }
+}
+
+.glow-tl {
+  animation: float-slow 18s ease-in-out infinite;
+}
+
+.glow-br {
+  animation: float-slow-reverse 22s ease-in-out infinite;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: #6366f1;
+  border-radius: 999px;
 }

@@ -16,7 +16,7 @@ import BackgroundDecor from '../components/BackgroundDecor.jsx'
 
 import {
   Users, Trophy, Code2, Monitor, Network,
-  Search, Filter, SortAsc, Download, LogOut,
+  Search, Filter, Download, LogOut,
   Pencil, Trash2, ChevronLeft, ChevronRight,
   RefreshCw, GraduationCap, LayoutDashboard,
   ArrowUpDown, ArrowUp, ArrowDown,
@@ -50,7 +50,6 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
   const [editTarget, setEditTarget] = useState(null)
   const [deleteTarget, setDeleteTarget] = useState(null)
 
-  // Filters / search / sort
   const [search, setSearch] = useState('')
   const [deptFilter, setDeptFilter] = useState('all')
   const [yearFilter, setYearFilter] = useState('all')
@@ -58,7 +57,6 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
   const [sortDir, setSortDir] = useState('desc')
   const [page, setPage] = useState(1)
 
-  // Real-time listener
   useEffect(() => {
     const unsub = subscribeToStudents((data) => {
       setStudents(data)
@@ -67,10 +65,8 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
     return () => unsub()
   }, [])
 
-  // Reset page when filters change
   useEffect(() => { setPage(1) }, [search, deptFilter, yearFilter, sortField, sortDir])
 
-  // Filtered + sorted data
   const filtered = useMemo(() => {
     let data = [...students]
     if (search.trim()) {
@@ -96,11 +92,9 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
     return data
   }, [students, search, deptFilter, yearFilter, sortField, sortDir])
 
-  // Pagination
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  // Stats
   const stats = useMemo(() => ({
     total: students.length,
     se: students.filter((s) => s.department === 'Software Engineering').length,
@@ -108,19 +102,18 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
     ict: students.filter((s) => s.department === 'Information Communication Technology').length,
   }), [students])
 
-  // Sort toggle
   const toggleSort = (field) => {
     if (sortField === field) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
     else { setSortField(field); setSortDir('asc') }
   }
+
   const SortIcon = ({ field }) => {
-    if (sortField !== field) return <ArrowUpDown className="w-3.5 h-3.5 opacity-40" />
+    if (sortField !== field) return <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
     return sortDir === 'asc'
       ? <ArrowUp className="w-3.5 h-3.5 text-indigo-500" />
       : <ArrowDown className="w-3.5 h-3.5 text-indigo-500" />
   }
 
-  // Export to Excel
   const exportExcel = () => {
     const rows = filtered.map((s, i) => ({
       '#': i + 1,
@@ -138,37 +131,36 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
     saveAs(new Blob([buf], { type: 'application/octet-stream' }), 'OBU_Hackathon_Students.xlsx')
   }
 
-  // Logout
   const handleLogout = async () => {
     await logoutAdmin()
     navigate('/admin', { replace: true })
   }
 
-  const inputCls = 'px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-800 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all duration-200'
+  const ctrlCls = 'px-3 py-2 rounded-xl border border-gray-200/80 dark:border-white/8 bg-white/70 dark:bg-white/6 backdrop-blur-sm text-gray-700 dark:text-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all duration-200'
 
   return (
-    <div className="min-h-screen bg-gray-50/50 dark:bg-[#04060b] transition-colors duration-300 relative overflow-hidden">
+    <div className="min-h-screen bg-[#fdfdff] dark:bg-[#04060b] transition-colors duration-300 relative overflow-hidden">
       <BackgroundDecor />
       <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
 
       {/* ── Header ── */}
-      <header className="sticky top-0 z-30 bg-white/60 dark:bg-gray-900/40 backdrop-blur-2xl border-b border-gray-200/50 dark:border-white/5 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+      <header className="sticky top-0 z-30 bg-white/70 dark:bg-gray-900/50 backdrop-blur-2xl border-b border-gray-200/50 dark:border-white/6 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-[60px] flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-600 to-purple-600 shadow-md">
-              <Trophy className="w-5 h-5 text-white" />
+            <div className="flex items-center justify-center w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-md shadow-indigo-500/20">
+              <Trophy className="w-4.5 h-4.5 text-white" />
             </div>
             <div>
               <h1 className="text-sm font-bold text-gray-900 dark:text-white leading-none">OBU Hackathon</h1>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
+              <p className="text-[11px] text-gray-400 dark:text-gray-500 mt-0.5 flex items-center gap-1">
                 <LayoutDashboard className="w-3 h-3" /> Admin Dashboard
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold">
+            <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100/80 dark:bg-white/6 border border-gray-200/60 dark:border-white/8">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-[10px] font-black">
                 {currentUser?.email?.[0]?.toUpperCase() ?? 'A'}
               </div>
               <span className="text-xs text-gray-600 dark:text-gray-400 font-medium max-w-[140px] truncate">
@@ -178,7 +170,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
             <motion.button
               onClick={handleLogout}
               id="logout-btn"
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200 dark:border-red-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 border border-red-200/80 dark:border-red-500/20 transition-all cursor-pointer"
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
               <LogOut className="w-3.5 h-3.5" /> Logout
             </motion.button>
@@ -186,21 +178,21 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
 
         {/* ── Stats ── */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatsCard icon={Users} label="Total Registered" value={stats.total} color="blue" delay={0} />
-          <StatsCard icon={Code2} label="Software Engineering" value={stats.se} color="purple" delay={0.05} />
-          <StatsCard icon={Monitor} label="Computer Science" value={stats.cs} color="indigo" delay={0.1} />
-          <StatsCard icon={Network} label="ICT" value={stats.ict} color="green" delay={0.15} />
+          <StatsCard icon={Code2} label="Software Engineering" value={stats.se} color="purple" delay={0.06} />
+          <StatsCard icon={Monitor} label="Computer Science" value={stats.cs} color="indigo" delay={0.12} />
+          <StatsCard icon={Network} label="ICT" value={stats.ict} color="green" delay={0.18} />
         </div>
 
-        {/* ── Controls ── */}
+        {/* ── Filters / Controls ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="bg-white/40 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/5 shadow-sm p-5"
+          transition={{ duration: 0.4, delay: 0.22 }}
+          className="bg-white/60 dark:bg-gray-900/40 backdrop-blur-xl rounded-2xl border border-white/70 dark:border-white/6 shadow-sm p-4 sm:p-5"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:flex-wrap">
             {/* Search */}
@@ -212,7 +204,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                 placeholder="Search by name or ID…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className={`${inputCls} w-full pl-9`}
+                className={`${ctrlCls} w-full pl-9`}
               />
             </div>
 
@@ -220,7 +212,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <select id="dept-filter" value={deptFilter} onChange={(e) => setDeptFilter(e.target.value)}
-                className={`${inputCls} pl-9 appearance-none pr-8 cursor-pointer`}>
+                className={`${ctrlCls} pl-9 appearance-none pr-8 cursor-pointer`}>
                 <option value="all">All Departments</option>
                 <option value="Software Engineering">Software Engineering</option>
                 <option value="Computer Science">Computer Science</option>
@@ -232,7 +224,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
             <div className="relative">
               <GraduationCap className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
               <select id="year-filter" value={yearFilter} onChange={(e) => setYearFilter(e.target.value)}
-                className={`${inputCls} pl-9 appearance-none pr-8 cursor-pointer`}>
+                className={`${ctrlCls} pl-9 appearance-none pr-8 cursor-pointer`}>
                 <option value="all">All Years</option>
                 <option value="1st Year">1st Year</option>
                 <option value="2nd Year">2nd Year</option>
@@ -245,15 +237,15 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
             <motion.button
               id="export-btn"
               onClick={exportExcel}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 shadow-md shadow-emerald-500/20 transition-all cursor-pointer"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md shadow-emerald-500/20 transition-all cursor-pointer hover:from-emerald-400 hover:to-teal-500"
               whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
-              <Download className="w-4 h-4" /> Export to Excel
+              <Download className="w-4 h-4" /> Export Excel
             </motion.button>
           </div>
 
-          {/* Active filters summary */}
+          {/* Active filter hint */}
           {(search || deptFilter !== 'all' || yearFilter !== 'all') && (
-            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/5 flex-wrap">
+            <div className="flex items-center gap-2 mt-3 pt-3 border-t border-gray-100/80 dark:border-white/6 flex-wrap">
               <span className="text-xs text-gray-400 font-medium">Showing</span>
               <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{filtered.length}</span>
               <span className="text-xs text-gray-400">of {students.length} students</span>
@@ -268,20 +260,20 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
         {/* ── Table ── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-          className="bg-white/40 dark:bg-gray-900/20 backdrop-blur-xl rounded-2xl border border-white/40 dark:border-white/5 shadow-sm overflow-hidden"
+          transition={{ duration: 0.4, delay: 0.28 }}
+          className="bg-white/60 dark:bg-gray-900/30 backdrop-blur-xl rounded-2xl border border-white/70 dark:border-white/6 shadow-sm overflow-hidden"
         >
           {loading ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-4">
-              <div className="w-10 h-10 border-4 border-indigo-200 dark:border-indigo-800 border-t-indigo-600 dark:border-t-indigo-400 rounded-full animate-spin" />
-              <p className="text-sm text-gray-400">Loading students…</p>
+            <div className="flex flex-col items-center justify-center py-24 gap-4">
+              <div className="w-10 h-10 border-[3px] border-indigo-200 dark:border-indigo-800 border-t-indigo-500 dark:border-t-indigo-400 rounded-full animate-spin" />
+              <p className="text-sm text-gray-400 font-medium">Loading students…</p>
             </div>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-20 gap-3">
+            <div className="flex flex-col items-center justify-center py-24 gap-3">
               <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-white/5 flex items-center justify-center">
                 <Users className="w-7 h-7 text-gray-300 dark:text-gray-600" />
               </div>
-              <p className="text-sm font-medium text-gray-400">No students found</p>
+              <p className="text-sm font-semibold text-gray-400">No students found</p>
               <p className="text-xs text-gray-300 dark:text-gray-600">
                 {students.length === 0 ? 'No registrations yet.' : 'Try adjusting your filters.'}
               </p>
@@ -292,8 +284,8 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
               <div className="hidden md:block overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-white/2">
-                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider w-10">#</th>
+                    <tr className="border-b border-gray-100/80 dark:border-white/6 bg-gray-50/60 dark:bg-white/2">
+                      <th className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider w-10">#</th>
                       {[
                         { label: 'Name', field: 'name' },
                         { label: 'Student ID', field: 'studentId' },
@@ -302,40 +294,40 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                         { label: 'Email', field: 'email' },
                       ].map(({ label, field }) => (
                         <th key={field}
-                          className="px-5 py-3.5 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+                          className="px-5 py-3.5 text-left text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
                           onClick={() => toggleSort(field)}>
                           <span className="flex items-center gap-1.5 select-none">
                             {label} <SortIcon field={field} />
                           </span>
                         </th>
                       ))}
-                      <th className="px-5 py-3.5 text-right text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Actions</th>
+                      <th className="px-5 py-3.5 text-right text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                  <tbody className="divide-y divide-gray-100/60 dark:divide-white/4">
                     <AnimatePresence mode="popLayout">
                       {paginated.map((student, idx) => (
                         <motion.tr
                           key={student.id}
                           layout
-                          initial={{ opacity: 0, x: -10 }}
+                          initial={{ opacity: 0, x: -8 }}
                           animate={{ opacity: 1, x: 0 }}
-                          exit={{ opacity: 0, x: 10, height: 0 }}
-                          transition={{ duration: 0.25, delay: idx * 0.03 }}
-                          className="hover:bg-gray-50 dark:hover:bg-white/2 transition-colors group"
+                          exit={{ opacity: 0, x: 8, height: 0 }}
+                          transition={{ duration: 0.22, delay: idx * 0.025 }}
+                          className="hover:bg-gray-50/70 dark:hover:bg-white/3 transition-colors group"
                         >
-                          <td className="px-5 py-4 text-gray-400 dark:text-gray-600 text-xs w-10">
+                          <td className="px-5 py-4 text-gray-300 dark:text-gray-700 text-xs w-10">
                             {(page - 1) * PAGE_SIZE + idx + 1}
                           </td>
                           <td className="px-5 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold shrink-0 shadow-sm">
                                 {student.name?.[0]?.toUpperCase() ?? '?'}
                               </div>
                               <span className="font-semibold text-gray-800 dark:text-white">{student.name}</span>
                             </div>
                           </td>
-                          <td className="px-5 py-4 text-gray-600 dark:text-gray-300 font-mono text-xs">{student.studentId}</td>
+                          <td className="px-5 py-4 text-gray-500 dark:text-gray-400 font-mono text-xs tracking-wide">{student.studentId}</td>
                           <td className="px-5 py-4">
                             <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold ${DEPT_COLOR[student.department] || 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300'}`}>
                               {DEPT_ABBR[student.department] || student.department}
@@ -346,21 +338,19 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                               {student.year}
                             </span>
                           </td>
-                          <td className="px-5 py-4 text-gray-500 dark:text-gray-400 text-xs">{student.email}</td>
+                          <td className="px-5 py-4 text-gray-400 dark:text-gray-500 text-xs">{student.email}</td>
                           <td className="px-5 py-4">
-                            <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                               <motion.button
                                 onClick={() => setEditTarget(student)}
                                 className="p-2 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all cursor-pointer"
-                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                                title="Edit">
+                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} title="Edit">
                                 <Pencil className="w-3.5 h-3.5" />
                               </motion.button>
                               <motion.button
                                 onClick={() => setDeleteTarget(student)}
                                 className="p-2 rounded-lg text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all cursor-pointer"
-                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}
-                                title="Delete">
+                                whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }} title="Delete">
                                 <Trash2 className="w-3.5 h-3.5" />
                               </motion.button>
                             </div>
@@ -373,21 +363,21 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden divide-y divide-gray-100 dark:divide-white/5">
+              <div className="md:hidden divide-y divide-gray-100/60 dark:divide-white/4">
                 <AnimatePresence mode="popLayout">
                   {paginated.map((student, idx) => (
                     <motion.div
                       key={student.id}
                       layout
-                      initial={{ opacity: 0, y: 10 }}
+                      initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      transition={{ duration: 0.25, delay: idx * 0.03 }}
+                      exit={{ opacity: 0, y: -8 }}
+                      transition={{ duration: 0.22, delay: idx * 0.025 }}
                       className="p-4 space-y-3"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white text-sm font-bold shadow-sm">
                             {student.name?.[0]?.toUpperCase() ?? '?'}
                           </div>
                           <div>
@@ -395,7 +385,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                             <p className="text-xs text-gray-400 font-mono">{student.studentId}</p>
                           </div>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-1.5">
                           <button onClick={() => setEditTarget(student)}
                             className="p-2 rounded-lg text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-all cursor-pointer">
                             <Pencil className="w-4 h-4" />
@@ -413,7 +403,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                         <span className={`px-2.5 py-1 rounded-lg text-xs font-semibold ${YEAR_COLOR[student.year] || 'bg-gray-100 text-gray-600'}`}>
                           {student.year}
                         </span>
-                        <span className="px-2.5 py-1 rounded-lg text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/5">{student.email}</span>
+                        <span className="px-2.5 py-1 rounded-lg text-xs text-gray-400 bg-gray-100/80 dark:bg-white/5">{student.email}</span>
                       </div>
                     </motion.div>
                   ))}
@@ -422,7 +412,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
 
               {/* Pagination */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100 dark:border-white/5">
+                <div className="flex items-center justify-between px-5 py-4 border-t border-gray-100/80 dark:border-white/6">
                   <p className="text-xs text-gray-400">
                     Page <span className="font-semibold text-gray-700 dark:text-gray-200">{page}</span> of{' '}
                     <span className="font-semibold text-gray-700 dark:text-gray-200">{totalPages}</span>
@@ -430,7 +420,7 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                   </p>
                   <div className="flex items-center gap-1">
                     <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all">
+                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/6 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all">
                       <ChevronLeft className="w-4 h-4" />
                     </button>
                     {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
@@ -442,14 +432,14 @@ export default function DashboardPage({ darkMode, setDarkMode }) {
                         <button key={p} onClick={() => setPage(p)}
                           className={`w-8 h-8 rounded-lg text-xs font-semibold transition-all cursor-pointer ${page === p
                             ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
-                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5'
+                            : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-white/6'
                             }`}>
                           {p}
                         </button>
                       )
                     })}
                     <button onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={page === totalPages}
-                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all">
+                      className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-white/6 disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer transition-all">
                       <ChevronRight className="w-4 h-4" />
                     </button>
                   </div>
