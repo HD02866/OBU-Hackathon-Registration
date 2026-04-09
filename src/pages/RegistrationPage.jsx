@@ -84,8 +84,8 @@ export default function RegistrationPage({ darkMode, setDarkMode }) {
   const isLoading = status === 'loading'
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden bg-[#fdfdff] dark:bg-[#04060b] transition-colors duration-500">
-      <BackgroundDecor />
+    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden bg-[#fdfdff] dark:bg-[#04060b] transition-colors duration-500 isolate">
+      <BackgroundDecor type="auth" />
       <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
 
       {/* Badge */}
@@ -105,7 +105,7 @@ export default function RegistrationPage({ darkMode, setDarkMode }) {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="w-full max-w-lg relative"
+        className="w-full max-w-md relative z-10"
       >
         {/* Card glow halo */}
         <div className="absolute -inset-1 bg-gradient-to-br from-indigo-500/10 to-purple-500/10 rounded-3xl blur-xl pointer-events-none" />
