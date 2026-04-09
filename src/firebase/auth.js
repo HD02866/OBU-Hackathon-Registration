@@ -60,16 +60,10 @@ async function ensureAdminExists() {
  * For the designated admin email, auto-ensures the account exists first.
  */
 export async function loginAdmin(email, password) {
-  // For the designated admin, guarantee the account exists before attempting login
-  if (email === ADMIN_EMAIL) {
-    try {
-      await ensureAdminExists()
-    } catch (seedErr) {
-      // Non-fatal: log and try regular login anyway
-      console.warn('[Auth] ensureAdminExists failed:', seedErr.message)
-    }
-  }
-
+  // We no longer call ensureAdminExists() automatically here.
+  // This makes it a "pure" Firebase login.
+  // If the admin account doesn't exist or password is wrong, Firebase will throw an error.
+  // The user can then click the "Fix" button on the UI which calls seedAdminAccount().
   const credential = await signInWithEmailAndPassword(auth, email, password)
   const user = credential.user
 
