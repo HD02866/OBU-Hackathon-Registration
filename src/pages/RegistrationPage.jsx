@@ -86,19 +86,31 @@ export default function RegistrationPage({ darkMode, setDarkMode }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden bg-[#fdfdff] dark:bg-[#04060b] transition-colors duration-500 isolate">
       <BackgroundDecor type="auth" />
-      <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+      {/* Badge & Toggle Row */}
+      <div className="flex items-center gap-3 mb-7 w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex-1 flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 backdrop-blur-md border border-indigo-200/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest shadow-sm overflow-hidden"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span className="truncate">OBU Hackathon 2026</span>
+          <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+        </motion.div>
 
-      {/* Badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-7 flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 dark:bg-indigo-500/10 backdrop-blur-md border border-indigo-200/60 dark:border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest shadow-sm"
-      >
-        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-        OBU Hackathon 2026
-        <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <DarkModeToggle 
+            darkMode={darkMode} 
+            setDarkMode={setDarkMode} 
+            className="static top-auto right-auto shadow-sm" 
+          />
+        </motion.div>
+      </div>
 
       {/* Card */}
       <motion.div

@@ -1,13 +1,12 @@
 import { motion } from 'framer-motion'
 import { Sun, Moon } from 'lucide-react'
 
-export default function DarkModeToggle({ darkMode, setDarkMode }) {
+export default function DarkModeToggle({ darkMode, setDarkMode, className = 'fixed top-4 right-4 z-50' }) {
   return (
     <motion.button
       id="dark-mode-toggle"
       onClick={() => setDarkMode(!darkMode)}
-      className="
-        fixed top-4 right-4 z-50
+      className={`
         flex items-center gap-2 px-3.5 py-2
         rounded-full
         bg-white/70 dark:bg-white/10
@@ -18,7 +17,8 @@ export default function DarkModeToggle({ darkMode, setDarkMode }) {
         shadow-lg shadow-black/5 dark:shadow-black/30
         cursor-pointer
         transition-all duration-300
-      "
+        ${className}
+      `}
       whileHover={{ scale: 1.05 }}
       whileTap={{ scale: 0.95 }}
       aria-label="Toggle dark mode"

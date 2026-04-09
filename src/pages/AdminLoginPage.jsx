@@ -91,18 +91,30 @@ export default function AdminLoginPage({ darkMode, setDarkMode }) {
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-16 relative overflow-hidden bg-[#fdfdff] dark:bg-[#04060b] transition-colors duration-500 isolate">
       <BackgroundDecor type="auth" />
-      <DarkModeToggle darkMode={darkMode} setDarkMode={setDarkMode} />
+      {/* Badge & Toggle Row */}
+      <div className="flex items-center gap-3 mb-7 w-full max-w-md">
+        <motion.div
+          initial={{ opacity: 0, x: -16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+          className="flex-1 flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 dark:bg-purple-500/10 backdrop-blur-md border border-purple-200/60 dark:border-purple-500/20 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-widest shadow-sm overflow-hidden"
+        >
+          <Lock className="w-3.5 h-3.5 shrink-0" />
+          <span className="truncate">Admin Secure Access</span>
+        </motion.div>
 
-      {/* Admin Panel badge */}
-      <motion.div
-        initial={{ opacity: 0, y: -16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="mb-7 flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 dark:bg-purple-500/10 backdrop-blur-md border border-purple-200/60 dark:border-purple-500/20 text-purple-700 dark:text-purple-400 text-xs font-bold uppercase tracking-widest shadow-sm"
-      >
-        <Lock className="w-3.5 h-3.5" />
-        Admin Secure Access
-      </motion.div>
+        <motion.div
+          initial={{ opacity: 0, x: 16 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <DarkModeToggle 
+            darkMode={darkMode} 
+            setDarkMode={setDarkMode} 
+            className="static top-auto right-auto shadow-sm" 
+          />
+        </motion.div>
+      </div>
 
       {/* Card */}
       <motion.div
