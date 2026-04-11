@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import DarkModeToggle from '../components/DarkModeToggle.jsx'
 import { registerStudent } from '../firebase/db.js'
@@ -51,6 +51,49 @@ function InputWrapper({ icon: Icon, children }) {
 }
 
 const INITIAL = { studentName: '', studentId: '', department: '', year: '', email: '' }
+
+const TypewriterText = ({ texts }) => {
+  const [text, setText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [loopNum, setLoopNum] = useState(0);
+
+  useEffect(() => {
+    let timeout;
+    const currentText = texts[loopNum % texts.length];
+
+    if (isDeleting) {
+      if (text.length > 0) {
+        timeout = setTimeout(() => setText(text.slice(0, -1)), 60);
+      } else {
+        setIsDeleting(false);
+        setLoopNum(loopNum + 1);
+      }
+    } else {
+      if (text.length < currentText.length) {
+        timeout = setTimeout(() => setText(currentText.slice(0, text.length + 1)), 100);
+      } else {
+        timeout = setTimeout(() => setIsDeleting(true), 2500);
+      }
+    }
+    return () => clearTimeout(timeout);
+  }, [text, isDeleting, texts, loopNum]);
+
+  return (
+    <span className="inline-flex items-center">
+      {text}
+      <span className="animate-pulse ml-1 opacity-70">|</span>
+    </span>
+  );
+};
+
+const introVariants = {
+  hidden: { opacity: 0, y: 80 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    transition: { duration: 1.5, ease: [0.22, 1, 0.36, 1] } 
+  },
+};
 
 export default function RegistrationPage({ darkMode, setDarkMode }) {
   const [formData, setFormData] = useState(INITIAL)
@@ -130,12 +173,12 @@ export default function RegistrationPage({ darkMode, setDarkMode }) {
 
           <div className="p-8 sm:p-10">
             {/* Title */}
-            <motion.div variants={itemVariants} className="text-center mb-9">
+            <motion.div variants={introVariants} className="text-center mb-9">
               <div className="inline-flex items-center justify-center w-[72px] h-[72px] rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-xl shadow-blue-500/25 mb-5 mx-auto">
                 <Trophy className="w-9 h-9 text-white" />
               </div>
-              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1.5">
-                Participant Registration
+              <h1 className="text-3xl font-extrabold text-gray-900 dark:text-white tracking-tight mb-1.5 min-h-[40px] flex items-center justify-center">
+                <TypewriterText texts={["Hackathon Participants", "FutureTech Innovators"]} />
               </h1>
               <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">
                 Empowering the next generation of innovators
